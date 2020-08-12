@@ -66,7 +66,7 @@ class Snek(BaseAgent):
             ]
 
             # In practise, this offset has little impact
-            ball_pos_with_offset = ball.pos + normalize(self.info.opp_goal.pos - ball.pos) * 60
+            ball_pos_with_offset = ball.pos + normalize(self.info.opp_goal.pos - ball.pos) * -60
             delta_n = normalize(ball_pos_with_offset - car.pos)
 
             turn, _ = argmax(turns, lambda turn: dot(turn.dir, delta_n))
