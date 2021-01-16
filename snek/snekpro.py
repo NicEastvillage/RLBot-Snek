@@ -11,7 +11,7 @@ from utilities.info import GameInfo
 from utilities.vec import dot, axis_to_rotation, rotation_to_euler, normalize, looking_in_dir, xy
 
 
-class Snek(BaseAgent):
+class SnekPro(BaseAgent):
 
     def __init__(self, name, team, index):
         super().__init__(name, team, index)
@@ -20,7 +20,6 @@ class Snek(BaseAgent):
         self.controls = SimpleControllerState()
         self.controls.throttle = 1
         self.controls.boost = 1
-        # Simple snake only has one state: CHASE THE BALL
         self.state = GenericMoveTo(lambda bot: bot.info.ball.pos + normalize(self.info.opp_goal.pos - bot.info.ball.pos) * -60)
 
     def get_output(self, packet: GameTickPacket) -> SimpleControllerState:
@@ -43,6 +42,7 @@ class Snek(BaseAgent):
 
         elif self.last_turn_time + TURN_COOLDOWN < time.time():
 
+            self.choose_state()
             turn = self.state.exec(self)
 
             if turn is not None and turn.axis is not None:
@@ -60,3 +60,6 @@ class Snek(BaseAgent):
         self.set_game_state(game_state)
 
         return self.controls
+
+    def choose_state(self):
+        pass
