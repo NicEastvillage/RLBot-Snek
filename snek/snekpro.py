@@ -1,12 +1,11 @@
-import math
 import time
 
 from rlbot.agents.base_agent import BaseAgent, SimpleControllerState
 from rlbot.utils.game_state_util import *
 from rlbot.utils.structures.game_data_struct import GameTickPacket
 
-from settings import ARTIFICIAL_UNLIMITED_BOOST, TURN_COOLDOWN
-from states import GenericMoveTo
+from settings import TURN_COOLDOWN
+from find_turn import smart_drive_to, shoot_at_goal, find_turn
 from utilities.info import GameInfo
 from utilities.vec import dot, axis_to_rotation, rotation_to_euler, normalize, looking_in_dir, xy
 
@@ -20,7 +19,6 @@ class SnekPro(BaseAgent):
         self.controls = SimpleControllerState()
         self.controls.throttle = 1
         self.controls.boost = 1
-        self.state = GenericMoveTo(lambda bot: bot.info.ball.pos + normalize(self.info.opp_goal.pos - bot.info.ball.pos) * -60)
 
     def get_output(self, packet: GameTickPacket) -> SimpleControllerState:
         self.info.read_packet(packet)
@@ -29,8 +27,7 @@ class SnekPro(BaseAgent):
         ball = self.info.ball
 
         car_state = CarState()
-        if ARTIFICIAL_UNLIMITED_BOOST:
-            car_state.boost_amount = 100
+        car_state.boost_amount = 100
 
         if ball.pos.x == 0 and ball.pos.y == 0:
             # Kickoff
@@ -40,12 +37,11 @@ class SnekPro(BaseAgent):
                 rotation=Rotator(pitch=euler.x, roll=0, yaw=euler.y)
             )
 
-        elif self.last_turn_time + TURN_COOLDOWN < time.time():
+        else:
 
-            self.choose_state()
-            turn = self.state.exec(self)
+            turn = find_turn(self)
 
-            if turn is not None and turn.axis is not None:
+            if self.can_turn() and turn is not None and turn.axis is not None:
                 self.last_turn_time = time.time()
                 mat = axis_to_rotation(turn.axis)
                 new_vel = dot(mat, car.vel)
@@ -61,5 +57,8 @@ class SnekPro(BaseAgent):
 
         return self.controls
 
-    def choose_state(self):
-        pass
+    def can_turn(self) -> bool:
+        return self.last_turn_time + TURN_COOLDOWN < time.time()
+
+    def time_till_turn(self) -> float:
+        return self.last_turn_time + TURN_COOLDOWN - time.time()
