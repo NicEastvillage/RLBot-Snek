@@ -1,14 +1,13 @@
-import math
 import time
 
 from rlbot.agents.base_agent import BaseAgent, SimpleControllerState
 from rlbot.utils.game_state_util import *
 from rlbot.utils.structures.game_data_struct import GameTickPacket
 
+from find_turn import find_turn
 from settings import TURN_COOLDOWN
-from find_turn import drive_to
 from utilities.info import GameInfo
-from utilities.vec import dot, axis_to_rotation, rotation_to_euler, normalize, looking_in_dir, xy
+from utilities.vec import dot, axis_to_rotation, rotation_to_euler, looking_in_dir, xy
 
 
 class Snek(BaseAgent):
@@ -20,8 +19,6 @@ class Snek(BaseAgent):
         self.controls = SimpleControllerState()
         self.controls.throttle = 1
         self.controls.boost = 1
-        # Simple snake only has one state: CHASE THE BALL
-        self.state = GenericMoveTo(lambda bot: bot.info.ball.pos + normalize(self.info.opp_goal.pos - bot.info.ball.pos) * -60)
 
     def get_output(self, packet: GameTickPacket) -> SimpleControllerState:
         self.info.read_packet(packet)
@@ -42,8 +39,7 @@ class Snek(BaseAgent):
 
         else:
 
-            target = ball.pos + normalize(self.info.opp_goal.pos - ball.pos) * -60
-            turn = drive_to(self, target)
+            turn = find_turn(self)
 
             if self.can_turn() and turn is not None and turn.axis is not None:
                 self.last_turn_time = time.time()
