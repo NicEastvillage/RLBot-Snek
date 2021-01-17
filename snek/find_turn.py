@@ -60,14 +60,14 @@ def predict_time_of_arrival(bot, target: Vec3) -> float:
     Returns a rough prediction of how long it will take to reach the target position
     """
     car = bot.info.my_car
-    speed = min(2295, norm(car.vel) * 1.4)
+    speed = min(2295, norm(car.vel) * 1.5)
     next_turn_pos = car.pos if bot.can_turn() else car.pos + car.forward * speed * bot.time_till_turn()
     delta_local = dot(target - next_turn_pos, car.rot)
-    dist = delta_local.x + delta_local.y + delta_local.z - 80
+    dist = abs(delta_local.x) + abs(delta_local.y) + abs(delta_local.z) - 20
     time = max(0, bot.time_till_turn()) + dist / speed
     # If ball is behind, we need turn twice, so we add an additional TURN_COOLDOWN
     time = time if dot(car.forward, target - next_turn_pos) >= 0 else time + TURN_COOLDOWN
-    return time * 1.3  # Seems like we are still underestimating a bit, so we increase it a bit
+    return time * 1.2  # Seems like we are still underestimating a bit, so we increase it a bit
 
 
 def find_shot_target(bot) -> Optional[Vec3]:
